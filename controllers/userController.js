@@ -37,37 +37,37 @@ const signupUser = async (req, res) => {
   }
 };
 
-// //Login User
-// const loginUser = async (req, res) => {
-//   try {
-//     const { username, password } = req.body;
-//     const user = await User.findOne({ username });
+//Login User
+const loginUser = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
 
-//     if (!user)
-//       return res
-//         .status(404)
-//         .json({ error: "User not found, Please create an account" });
-//     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-//     if (!isPasswordCorrect)
-//       return res
-//         .status(400)
-//         .json({ error: "Incorrect password, Please check your password" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ error: "User not found, Please create an account" });
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect)
+      return res
+        .status(400)
+        .json({ error: "Incorrect password, Please check your password" });
 
-//         const token = generateToken(user._id, res);
+        const token = generateToken(user._id, res);
 
-//         res.status(200).json({
-//             _id: user._id,
-//             name: user.name,
-//             email: user.email,
-//             username: user.username,
-//             token
-//         })
+        res.status(200).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            username: user.username,
+            token
+        })
 
-//   } catch (error) {
-//     console.log("Error in loginUser:", error.message);
-//     return res.status(500).json({ error: error.message });
-//   }
-// };
+  } catch (error) {
+    console.log("Error in loginUser:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
 
 // //Logout User
 // const logoutUser = async (req, res) => {
