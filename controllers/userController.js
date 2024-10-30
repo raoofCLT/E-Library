@@ -1,6 +1,7 @@
 import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import generateToken from "../genToken/generateToken.js";
+import mongoose from "mongoose"
 
 //Get Users
 const getUsers = async (req, res) => {
