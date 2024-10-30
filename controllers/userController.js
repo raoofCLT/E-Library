@@ -117,5 +117,48 @@ const logoutUser = async (req, res) => {
   }
 };
 
-export { signupUser, loginUser, logoutUser, getUsers, getUser };
+//Update User
+const UpdateUser = async (req, res) => {
+  const { name, username, email, password } = req.body;
+  let {profilePic} = req.body
+  const userId = req.user._id;
+  try {
+    if(!currentUser) return res.status(400).json({error: "You are not allowed"})
+    const dbUser = await User.findOne({ $or: [{ email }, { username }] });
+
+    if (!dbUser) return res.status(404).json({ error: "User not found" });
+
+    if(req.params.id !== userId)
+      return res
+    .status(400)
+    .json({ error: "You cannot update other user's profile  " });
+
+
+    if(password){
+
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      dbUser.password = hashedPassword
+    }
+
+  if(profilePic){
+    // handle profilePic with cloudinary
+  }
+
+    dbUser.name = name || dbUser.name;
+    dbUser.email = email || dbUser.email;
+    dbUser.username = username || dbUser.username;
+    dbUser.profilePic = profilePic || dbUser.profilePic;
+  
+    const user = await dbUser.save();
+
+user.password = null
+res.status(200).json(user);
+  } catch (error) {
+    console.log("Error in updateUser:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export { signupUser, loginUser, logoutUser, getUsers, getUser, UpdateUser };
 
