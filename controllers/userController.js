@@ -71,6 +71,7 @@ const loginUser = async (req, res) => {
 
     const token = generateToken(user._id, res);
 
+
     res.status(200).json({
       _id: user._id,
       name: user.name,
@@ -96,11 +97,4 @@ const logoutUser = async (req, res) => {
 };
 
 export { signupUser, loginUser, logoutUser, getUsers };
-// //Logout User
-// const getUsers = async (req, res) => {
-//   try {
-//   } catch (error) {
-//     console.log("Error in getUsers:", error.message);
-//     return res.status(500).json({ error: error.message });
-//   }
-// };
+
