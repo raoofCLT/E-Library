@@ -41,11 +41,3 @@ bookSchema.index({ title: 1, author: 1 }, { unique: true });
 const Book = mongoose.model("Book",bookSchema)
 
 export default Book
-// //Logout User
-// const getUsers = async (req, res) => {
-//   try {
-//   } catch (error) {
-//     console.log("Error in getUsers:", error.message);
-//     return res.status(500).json({ error: error.message });
-//   }
-// };
