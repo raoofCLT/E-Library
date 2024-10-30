@@ -1,4 +1,5 @@
 import Book from "../models/bookModel.js";
+import mongoose from "mongoose"
 
 // Create Books
 const createBook = async (req, res) => {
@@ -35,6 +36,10 @@ const updateBook = async (req, res) => {
     const { title, coverPage, author, genre, publicationDate, bio } = req.body;
     const bookId = req.params.id;
 
+    if (!mongoose.Types.ObjectId.isValid(bookId)) {
+        return res.status(400).json({ error: `Invalid book ID` });
+      }
+
     const dbBook = await Book.findById(bookId);
     if (!dbBook) {
       return res.status(404).json({ error: "Book not found" });
@@ -56,7 +61,30 @@ const updateBook = async (req, res) => {
   }
 };
 
-export { createBook, updateBook };
+// Delete Book
+const deleteBook = async (req, res) => {
+  try {
+    if (!req.user.isAdmin)
+        return res.status(400).json({ error: "You are not allowed" });
+
+      const bookId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(bookId)) {
+        return res.status(400).json({ error: `Invalid book ID` });
+      }
+  
+      const dbBook = await Book.findByIdAndDelete(bookId);
+      if (!dbBook) {
+        return res.status(404).json({ error: "Book not found" });
+      }
+      return res.status(200).json({ message: "Book removed successfully" });
+  } catch (error) {
+    console.log("Error in deleteBook:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export { createBook, updateBook,deleteBook };
 // //Logout User
 // const getUsers = async (req, res) => {
 //   try {
