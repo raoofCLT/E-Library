@@ -18,6 +18,9 @@ const getUsers = async (req, res) => {
   }
 };
 
+//Get Single User
+
+
 //Signup User
 const signupUser = async (req, res) => {
   try {

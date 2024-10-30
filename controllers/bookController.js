@@ -1,6 +1,20 @@
 import Book from "../models/bookModel.js";
 import mongoose from "mongoose"
 
+//Get Books
+const getBooks = async (req, res) => {
+  try {
+    if (!req.user.isAdmin)
+        return res.status(400).json({ error: "You are not allowed" });
+    
+      const books = await Book.find()
+      res.status(200).json(books);
+  } catch (error) {
+    console.log("Error in getUsers:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 // Create Books
 const createBook = async (req, res) => {
   try {
@@ -84,7 +98,7 @@ const deleteBook = async (req, res) => {
   }
 };
 
-export { createBook, updateBook,deleteBook };
+export { createBook, updateBook,deleteBook, getBooks };
 // //Logout User
 // const getUsers = async (req, res) => {
 //   try {
