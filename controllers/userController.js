@@ -18,8 +18,25 @@ const getUsers = async (req, res) => {
   }
 };
 
-//Get Single User
+//Get User
+const getUser = async (req, res) => {
+  try {
+    if (!req.user.isAdmin)
+        return res.status(400).json({ error: "You are not allowed" });
 
+    const userId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ error: `Invalid user ID` });
+      }
+
+      const user = await User.findById(userId)
+      res.status(200).json(user);
+  } catch (error) {
+    console.log("Error in getUser:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
 
 //Signup User
 const signupUser = async (req, res) => {
@@ -99,5 +116,5 @@ const logoutUser = async (req, res) => {
   }
 };
 
-export { signupUser, loginUser, logoutUser, getUsers };
+export { signupUser, loginUser, logoutUser, getUsers, getUser };
 

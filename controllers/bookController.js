@@ -10,7 +10,27 @@ const getBooks = async (req, res) => {
       const books = await Book.find()
       res.status(200).json(books);
   } catch (error) {
-    console.log("Error in getUsers:", error.message);
+    console.log("Error in getBooks:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+//Get Book
+const getBook = async (req, res) => {
+  try {
+    if (!req.user.isAdmin)
+        return res.status(400).json({ error: "You are not allowed" });
+
+    const bookId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(bookId)) {
+        return res.status(400).json({ error: `Invalid book ID` });
+      }
+
+      const book = await Book.findById(bookId)
+      res.status(200).json(book);
+  } catch (error) {
+    console.log("Error in getBook:", error.message);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -98,7 +118,7 @@ const deleteBook = async (req, res) => {
   }
 };
 
-export { createBook, updateBook,deleteBook, getBooks };
+export { createBook, updateBook,deleteBook, getBooks, getBook };
 // //Logout User
 // const getUsers = async (req, res) => {
 //   try {
