@@ -31,6 +31,10 @@ const bookSchema = mongoose.Schema({
     type: Date,
     required: true
   },
+  readers: {
+    type: [String],
+    default: []
+  },
   available: {
     type: Boolean,
     default: true

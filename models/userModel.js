@@ -28,6 +28,14 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    currentBooks: {
+      type: [String],
+      default: []
+    },
+    books: {
+      type: [String],
+      default: []
+    },
   },
   { timestamps: true }
 );

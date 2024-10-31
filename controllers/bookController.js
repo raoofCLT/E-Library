@@ -1,14 +1,15 @@
 import Book from "../models/bookModel.js";
-import mongoose from "mongoose"
+import mongoose from "mongoose";
+import User from "../models/userModel.js";
 
 //Get Books
 const getBooks = async (req, res) => {
   try {
     if (!req.user.isAdmin)
-        return res.status(400).json({ error: "You are not allowed" });
-    
-      const books = await Book.find()
-      res.status(200).json(books);
+      return res.status(400).json({ error: "You are not allowed" });
+
+    const books = await Book.find();
+    res.status(200).json(books);
   } catch (error) {
     console.log("Error in getBooks:", error.message);
     return res.status(500).json({ error: error.message });
@@ -19,16 +20,16 @@ const getBooks = async (req, res) => {
 const getBook = async (req, res) => {
   try {
     if (!req.user.isAdmin)
-        return res.status(400).json({ error: "You are not allowed" });
+      return res.status(400).json({ error: "You are not allowed" });
 
     const bookId = req.params.id;
 
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
-        return res.status(400).json({ error: `Invalid book ID` });
-      }
+      return res.status(400).json({ error: `Invalid book ID` });
+    }
 
-      const book = await Book.findById(bookId)
-      res.status(200).json(book);
+    const book = await Book.findById(bookId);
+    res.status(200).json(book);
   } catch (error) {
     console.log("Error in getBook:", error.message);
     return res.status(500).json({ error: error.message });
@@ -71,8 +72,8 @@ const updateBook = async (req, res) => {
     const bookId = req.params.id;
 
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
-        return res.status(400).json({ error: `Invalid book ID` });
-      }
+      return res.status(400).json({ error: `Invalid book ID` });
+    }
 
     const dbBook = await Book.findById(bookId);
     if (!dbBook) {
@@ -99,31 +100,63 @@ const updateBook = async (req, res) => {
 const deleteBook = async (req, res) => {
   try {
     if (!req.user.isAdmin)
-        return res.status(400).json({ error: "You are not allowed" });
+      return res.status(400).json({ error: "You are not allowed" });
 
-      const bookId = req.params.id;
+    const bookId = req.params.id;
 
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
-        return res.status(400).json({ error: `Invalid book ID` });
-      }
-  
-      const dbBook = await Book.findByIdAndDelete(bookId);
-      if (!dbBook) {
-        return res.status(404).json({ error: "Book not found" });
-      }
-      return res.status(200).json({ message: "Book removed successfully" });
+      return res.status(400).json({ error: `Invalid book ID` });
+    }
+
+    const dbBook = await Book.findByIdAndDelete(bookId);
+    if (!dbBook) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+    return res.status(200).json({ message: "Book removed successfully" });
   } catch (error) {
     console.log("Error in deleteBook:", error.message);
     return res.status(500).json({ error: error.message });
   }
 };
 
-export { createBook, updateBook,deleteBook, getBooks, getBook };
-// //Logout User
-// const getUsers = async (req, res) => {
+//Check In
+const checkIn = async (req, res) => {
+  try {
+    const bookId = req.params.id;
+    const user = req.user;
+    if (!mongoose.Types.ObjectId.isValid(bookId)) {
+      return res.status(400).json({ error: `Invalid book ID` });
+    }
+
+    const dbBook = await Book.findById(bookId);
+    if (!dbBook) return res.status(404).json({ error: "Book not found" });
+    if (!dbBook.available)
+      return res.status(400).json({ error: "Book is taken" });
+    if (user.currentBooks.length === 5)
+      return res.status(400).json({ error: "Max book limit reached" });
+
+    await Book.findByIdAndUpdate(bookId, {
+      $push: { readers: user._id },
+      $set: { available: false },
+    });
+
+    await User.findByIdAndUpdate(user._id, {
+      $push: { currentBooks: bookId, books: bookId },
+    });
+
+    res.status(200).json({ message: "Book checked in successfully" });
+  } catch (error) {
+    console.log("Error in checkIn:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export { createBook, updateBook, deleteBook, getBooks, getBook, checkIn };
+// //Check In
+// const checkIn = async (req, res) => {
 //   try {
 //   } catch (error) {
-//     console.log("Error in getUsers:", error.message);
+//     console.log("Error in checkIn:", error.message);
 //     return res.status(500).json({ error: error.message });
 //   }
 // };
