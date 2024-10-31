@@ -10,7 +10,7 @@ router.get("/getuser/:id",protectRoute,getUser)
 router.get("/getusers",protectRoute,getUsers)
 router.post("/signup",signupUser)
 router.post("/login",loginUser)
-router.get("/update/:id",protectRoute,UpdateUser)
+router.put("/update/:id",protectRoute,UpdateUser)
 router.post("/logout",logoutUser)
 
 export default router

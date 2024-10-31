@@ -19,8 +19,8 @@ const getBooks = async (req, res) => {
 //Get Book
 const getBook = async (req, res) => {
   try {
-    if (!req.user.isAdmin)
-      return res.status(400).json({ error: "You are not allowed" });
+    // if (!req.user.isAdmin)
+    //   return res.status(400).json({ error: "You are not allowed" });
 
     const bookId = req.params.id;
 
@@ -163,7 +163,6 @@ const checkOut = async (req, res) => {
     const dbBook = await Book.findById(bookId);
     if (!dbBook) return res.status(404).json({ error: "Book not found" });
 
-    //Checking if the user checked in this book
     const userExistsWithBookId = await User.findOne({
       _id: user._id,
       currentBooks: { $in: [bookId] }
@@ -173,10 +172,8 @@ const checkOut = async (req, res) => {
       return res.status(404).json({ error: "You are not checked in this book" });
     }
 
-    //updating book status
     await Book.findByIdAndUpdate(bookId, { $set: { available: true } });
     
-    //removing book from user
     await User.findByIdAndUpdate(user._id, { $pull: { currentBooks: bookId } });
 
     res.status(200).json({ message: "Book checked out successfully" });
@@ -186,6 +183,26 @@ const checkOut = async (req, res) => {
   }
 };
 
+//Suggested Books
+const SuggestedBooks = async (req, res) => {
+  try {
+    const userId = req.user;
+    const userBooks = req.user.books;
+
+    if(!userBooks.length){
+      const allBooks = await Book.find()
+      return res.status(200).json(allBooks)
+    }
+
+    const suggestedBooks = await Book.find({_id: {$nin: userBooks}})
+    res.status(200).json(suggestedBooks);
+  } catch (error) {
+    console.log("Error in suggestedBooks:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+
 export {
   createBook,
   updateBook,
@@ -194,6 +211,7 @@ export {
   getBook,
   checkIn,
   checkOut,
+  SuggestedBooks,
 };
 // //Check In
 // const checkIn = async (req, res) => {
