@@ -151,7 +151,50 @@ const checkIn = async (req, res) => {
   }
 };
 
-export { createBook, updateBook, deleteBook, getBooks, getBook, checkIn };
+//Check Out
+const checkOut = async (req, res) => {
+  try {
+    const bookId = req.params.id;
+    const user = req.user;
+    if (!mongoose.Types.ObjectId.isValid(bookId)) {
+      return res.status(400).json({ error: `Invalid book ID` });
+    }
+
+    const dbBook = await Book.findById(bookId);
+    if (!dbBook) return res.status(404).json({ error: "Book not found" });
+
+    //Checking if the user checked in this book
+    const userExistsWithBookId = await User.findOne({
+      _id: user._id,
+      currentBooks: { $in: [bookId] }
+    });
+
+    if (!userExistsWithBookId) {
+      return res.status(404).json({ error: "You are not checked in this book" });
+    }
+
+    //updating book status
+    await Book.findByIdAndUpdate(bookId, { $set: { available: true } });
+    
+    //removing book from user
+    await User.findByIdAndUpdate(user._id, { $pull: { currentBooks: bookId } });
+
+    res.status(200).json({ message: "Book checked out successfully" });
+  } catch (error) {
+    console.log("Error in checkOut:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export {
+  createBook,
+  updateBook,
+  deleteBook,
+  getBooks,
+  getBook,
+  checkIn,
+  checkOut,
+};
 // //Check In
 // const checkIn = async (req, res) => {
 //   try {
