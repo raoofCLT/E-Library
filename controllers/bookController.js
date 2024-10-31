@@ -165,15 +165,17 @@ const checkOut = async (req, res) => {
 
     const userExistsWithBookId = await User.findOne({
       _id: user._id,
-      currentBooks: { $in: [bookId] }
+      currentBooks: { $in: [bookId] },
     });
 
     if (!userExistsWithBookId) {
-      return res.status(404).json({ error: "You are not checked in this book" });
+      return res
+        .status(404)
+        .json({ error: "You are not checked in this book" });
     }
 
     await Book.findByIdAndUpdate(bookId, { $set: { available: true } });
-    
+
     await User.findByIdAndUpdate(user._id, { $pull: { currentBooks: bookId } });
 
     res.status(200).json({ message: "Book checked out successfully" });
@@ -184,17 +186,19 @@ const checkOut = async (req, res) => {
 };
 
 //Suggested Books
-const SuggestedBooks = async (req, res) => {
+const suggestedBooks = async (req, res) => {
   try {
     const userId = req.user;
     const userBooks = req.user.books;
 
-    if(!userBooks.length){
-      const allBooks = await Book.find()
-      return res.status(200).json(allBooks)
+    if (!userBooks.length) {
+      const allBooks = await Book.find().limit(6);
+      return res.status(200).json(allBooks);
     }
 
-    const suggestedBooks = await Book.find({_id: {$nin: userBooks}})
+    const suggestedBooks = await Book.find({ _id: { $nin: userBooks } }).limit(
+      6
+    );
     res.status(200).json(suggestedBooks);
   } catch (error) {
     console.log("Error in suggestedBooks:", error.message);
@@ -202,6 +206,31 @@ const SuggestedBooks = async (req, res) => {
   }
 };
 
+//Popular Books
+const popularBooks = async (req, res) => {
+  try {
+    const sortedRandomBooks = await Book.aggregate([
+      {
+        $project: {
+          title: 1,          
+          coverPage: 1,    
+          readersCount: { $size: "$readers" } 
+        }
+      },
+      {
+        $sort: { readersCount: -1 } 
+      },
+      {
+        $limit: 5 
+      }
+    ]);
+
+    res.status(200).json(sortedRandomBooks);
+  } catch (error) {
+    console.log("Error in popularBooks:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
 
 export {
   createBook,
@@ -211,7 +240,8 @@ export {
   getBook,
   checkIn,
   checkOut,
-  SuggestedBooks,
+  suggestedBooks,
+  popularBooks,
 };
 // //Check In
 // const checkIn = async (req, res) => {
