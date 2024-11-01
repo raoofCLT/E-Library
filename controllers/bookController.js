@@ -141,7 +141,8 @@ const checkIn = async (req, res) => {
     });
 
     await User.findByIdAndUpdate(user._id, {
-      $push: { currentBooks: bookId, books: bookId },
+      $push: { currentBooks: bookId },
+      $addToSet: { books: bookId }
     });
 
     res.status(200).json({ message: "Book checked in successfully" });
@@ -206,8 +207,8 @@ const suggestedBooks = async (req, res) => {
   }
 };
 
-//Popular Books
-const popularBooks = async (req, res) => {
+//Trending Books
+const trendingBooks = async (req, res) => {
   try {
     const sortedRandomBooks = await Book.aggregate([
       {
@@ -227,7 +228,7 @@ const popularBooks = async (req, res) => {
 
     res.status(200).json(sortedRandomBooks);
   } catch (error) {
-    console.log("Error in popularBooks:", error.message);
+    console.log("Error in trendingBooks:", error.message);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -241,7 +242,7 @@ export {
   checkIn,
   checkOut,
   suggestedBooks,
-  popularBooks,
+  trendingBooks,
 };
 // //Check In
 // const checkIn = async (req, res) => {

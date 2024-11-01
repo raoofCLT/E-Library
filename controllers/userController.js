@@ -1,17 +1,19 @@
 import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import generateToken from "../genToken/generateToken.js";
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 //Get Users
 const getUsers = async (req, res) => {
   try {
-    const currentUser = req.user
+    const currentUser = req.user;
     if (!currentUser.isAdmin) {
       return res.status(400).json({ message: "Your are not an admit" });
     }
 
-    const users = await User.find({_id:{$ne: currentUser._id}}).select("-password -updatedAt");
+    const users = await User.find({ _id: { $ne: currentUser._id } }).select(
+      "-password -updatedAt"
+    );
     res.status(200).json(users);
   } catch (error) {
     console.log("Error in getUsers:", error.message);
@@ -22,17 +24,17 @@ const getUsers = async (req, res) => {
 //Get User
 const getUser = async (req, res) => {
   try {
-    if (!req.user.isAdmin)
-        return res.status(400).json({ error: "You are not allowed" });
+    // if (!req.user.isAdmin)
+    //     return res.status(400).json({ error: "You are not allowed" });
 
     const userId = req.params.id;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ error: `Invalid user ID` });
-      }
+      return res.status(400).json({ error: `Invalid user ID` });
+    }
 
-      const user = await User.findById(userId)
-      res.status(200).json(user);
+    const user = await User.findById(userId);
+    res.status(200).json(user);
   } catch (error) {
     console.log("Error in getUser:", error.message);
     return res.status(500).json({ error: error.message });
@@ -66,7 +68,7 @@ const signupUser = async (req, res) => {
       name: newUser.name,
       username: newUser.username,
       email: newUser.email,
-      token,
+      profilePic: newUser.profilePic,
     });
   } catch (error) {
     console.log("Error in signupUser:", error.message);
@@ -91,7 +93,6 @@ const loginUser = async (req, res) => {
         .json({ error: "Incorrect password, Please check your password" });
 
     const token = generateToken(user._id, res);
-
 
     res.status(200).json({
       _id: user._id,
@@ -118,47 +119,61 @@ const logoutUser = async (req, res) => {
 };
 
 //Update User
-const UpdateUser = async (req, res) => {
-  const { name, username, email, password } = req.body;
-  let {profilePic} = req.body
+const updateUser = async (req, res) => {
+  const { name, username, email, password, profilePic } = req.body;
+
   const userId = req.user._id;
   try {
-    if(!currentUser) return res.status(400).json({error: "You are not allowed"})
-    const dbUser = await User.findOne({ $or: [{ email }, { username }] });
-
+    const dbUser = await User.findOne(userId);
     if (!dbUser) return res.status(404).json({ error: "User not found" });
-
-    if(req.params.id !== userId)
+    
+    if (req.params.id !== userId.toString())
       return res
-    .status(400)
-    .json({ error: "You cannot update other user's profile  " });
+        .status(400)
+        .json({ error: "You cannot update other user's profile  " });
 
-
-    if(password){
-
+    if (password) {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
-      dbUser.password = hashedPassword
+      dbUser.password = hashedPassword;
     }
-
-  if(profilePic){
-    // handle profilePic with cloudinary
-  }
 
     dbUser.name = name || dbUser.name;
     dbUser.email = email || dbUser.email;
     dbUser.username = username || dbUser.username;
     dbUser.profilePic = profilePic || dbUser.profilePic;
-  
+
     const user = await dbUser.save();
 
-user.password = null
-res.status(200).json(user);
+    user.password = null;
+    res.status(200).json(user);
   } catch (error) {
     console.log("Error in updateUser:", error.message);
     return res.status(500).json({ error: error.message });
   }
 };
 
-export { signupUser, loginUser, logoutUser, getUsers, getUser, UpdateUser };
+// Delete User
+const deleteUser = async (req, res) => {
+  try {
+    if (!req.user.isAdmin)
+      return res.status(400).json({ error: "You are not allowed" });
 
+    const userId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: `Invalid User ID` });
+    }
+
+    const dbUser = await User.findByIdAndDelete(userId);
+    if (!dbUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json({ message: "Removed user successfully" });
+  } catch (error) {
+    console.log("Error in deleteUser:", error.message);
+   res.status(500).json({ error: error.message });
+  }
+};
+
+export { signupUser, loginUser, logoutUser, getUsers, getUser, updateUser,deleteUser };

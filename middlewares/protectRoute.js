@@ -12,7 +12,6 @@ const protectRoute = async (req, res, next) => {
         const user = await User.findById(decoded.userId).select("-password")
         req.user = user
         next()
-
   }catch (error){
     res.status(500).json({ message: error.message });
     console.log("Error in protectRoute:", error.message);
