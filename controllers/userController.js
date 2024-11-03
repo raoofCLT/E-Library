@@ -24,9 +24,6 @@ const getUsers = async (req, res) => {
 //Get User
 const getUser = async (req, res) => {
   try {
-    // if (!req.user.isAdmin)
-    //     return res.status(400).json({ error: "You are not allowed" });
-
     const userId = req.params.id;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -124,7 +121,7 @@ const updateUser = async (req, res) => {
 
   const userId = req.user._id;
   try {
-    const dbUser = await User.findOne(userId);
+    const dbUser = await User.findById(userId);
     if (!dbUser) return res.status(404).json({ error: "User not found" });
     
     if (req.params.id !== userId.toString())

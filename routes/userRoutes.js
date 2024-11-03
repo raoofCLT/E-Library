@@ -7,6 +7,7 @@ const router = express.Router()
 
 
 router.get("/getuser/:id",protectRoute,getUser)
+//router.get("/getuser/:username",protectRoute,getUser)
 router.get("/getusers",protectRoute,getUsers)
 router.post("/signup",signupUser)
 router.post("/login",loginUser)

@@ -29,7 +29,18 @@ const userSchema = mongoose.Schema(
       default: false,
     },
     currentBooks: {
-      type: [String],
+      type: [
+        {
+          bookId: {
+            type: String,
+            required: true
+          },
+          checkInDate: {
+            type: Date,
+            default: Date.now
+          }
+        }
+      ],
       default: []
     },
     books: {
