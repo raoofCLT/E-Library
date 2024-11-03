@@ -21,6 +21,29 @@ const getUsers = async (req, res) => {
   }
 };
 
+//Search User
+const searchUser = async (req, res) => {
+  try {
+    const searchUser = req.params.username;
+    const currentUser = req.user;
+    if (!currentUser.isAdmin) {
+      return res.status(400).json({ message: "Your are not an admit" });
+    }
+
+    const user = await User.find({
+      username: { $regex: new RegExp(searchUser, "i") },
+    });
+
+    if (!user || user.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.log("Error in searchUser:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 //Get User
 const getUser = async (req, res) => {
   try {
@@ -123,7 +146,7 @@ const updateUser = async (req, res) => {
   try {
     const dbUser = await User.findById(userId);
     if (!dbUser) return res.status(404).json({ error: "User not found" });
-    
+
     if (req.params.id !== userId.toString())
       return res
         .status(400)
@@ -169,8 +192,17 @@ const deleteUser = async (req, res) => {
     res.status(200).json({ message: "Removed user successfully" });
   } catch (error) {
     console.log("Error in deleteUser:", error.message);
-   res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
-export { signupUser, loginUser, logoutUser, getUsers, getUser, updateUser,deleteUser };
+export {
+  signupUser,
+  loginUser,
+  logoutUser,
+  getUsers,
+  getUser,
+  updateUser,
+  deleteUser,
+  searchUser,
+};

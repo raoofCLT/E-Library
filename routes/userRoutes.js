@@ -1,5 +1,5 @@
 import express from "express";
-import { loginUser, signupUser,logoutUser,getUsers, getUser, updateUser, deleteUser } from "../controllers/userController.js";
+import { loginUser, signupUser,logoutUser,getUsers, getUser, updateUser, deleteUser, searchUser } from "../controllers/userController.js";
 import protectRoute from "../middlewares/protectRoute.js";
 
 
@@ -7,7 +7,7 @@ const router = express.Router()
 
 
 router.get("/getuser/:id",protectRoute,getUser)
-//router.get("/getuser/:username",protectRoute,getUser)
+router.get("/searchuser/:username",protectRoute,searchUser)
 router.get("/getusers",protectRoute,getUsers)
 router.post("/signup",signupUser)
 router.post("/login",loginUser)
