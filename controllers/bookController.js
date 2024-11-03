@@ -5,9 +5,6 @@ import User from "../models/userModel.js";
 //Get Books
 const getBooks = async (req, res) => {
   try {
-    if (!req.user.isAdmin)
-      return res.status(400).json({ error: "You are not allowed" });
-
     const books = await Book.find();
     res.status(200).json(books);
   } catch (error) {
@@ -19,9 +16,6 @@ const getBooks = async (req, res) => {
 //Get Book
 const getBook = async (req, res) => {
   try {
-    // if (!req.user.isAdmin)
-    //   return res.status(400).json({ error: "You are not allowed" });
-
     const bookId = req.params.id;
 
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
@@ -68,6 +62,7 @@ const updateBook = async (req, res) => {
   try {
     if (!req.user.isAdmin)
       return res.status(400).json({ error: "You are not allowed" });
+
     const { title, coverPage, author, genre, publicationDate, bio } = req.body;
     const bookId = req.params.id;
 
@@ -112,6 +107,17 @@ const deleteBook = async (req, res) => {
     if (!dbBook) {
       return res.status(404).json({ error: "Book not found" });
     }
+
+    await User.updateMany(
+      { $or: [{ currentBooks: bookId }, { books: bookId }] },
+      {
+        $pull: {
+          currentBooks: bookId,
+          books: bookId,
+        },
+      }
+    );
+
     return res.status(200).json({ message: "Book removed successfully" });
   } catch (error) {
     console.log("Error in deleteBook:", error.message);
@@ -124,6 +130,8 @@ const checkIn = async (req, res) => {
   try {
     const bookId = req.params.id;
     const user = req.user;
+    const { checkInDate } = req.body;
+
     if (!mongoose.Types.ObjectId.isValid(bookId)) {
       return res.status(400).json({ error: `Invalid book ID` });
     }
@@ -141,8 +149,13 @@ const checkIn = async (req, res) => {
     });
 
     await User.findByIdAndUpdate(user._id, {
-      $push: { currentBooks: bookId },
-      $addToSet: { books: bookId }
+      $push: {
+        currentBooks: {
+          bookId: bookId,
+          checkInDate: checkInDate || new Date(),
+        },
+      },
+      $addToSet: { books: bookId },
     });
 
     res.status(200).json({ message: "Book checked in successfully" });
@@ -162,13 +175,13 @@ const checkOut = async (req, res) => {
     }
 
     const dbBook = await Book.findById(bookId);
+
     if (!dbBook) return res.status(404).json({ error: "Book not found" });
 
     const userExistsWithBookId = await User.findOne({
       _id: user._id,
-      currentBooks: { $in: [bookId] },
+      currentBooks: { $elemMatch: { bookId: bookId } },
     });
-
     if (!userExistsWithBookId) {
       return res
         .status(404)
@@ -177,32 +190,13 @@ const checkOut = async (req, res) => {
 
     await Book.findByIdAndUpdate(bookId, { $set: { available: true } });
 
-    await User.findByIdAndUpdate(user._id, { $pull: { currentBooks: bookId } });
+    await User.findByIdAndUpdate(user._id, {
+      $pull: { currentBooks: { bookId: bookId } },
+    });
 
     res.status(200).json({ message: "Book checked out successfully" });
   } catch (error) {
     console.log("Error in checkOut:", error.message);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-//Suggested Books
-const suggestedBooks = async (req, res) => {
-  try {
-    const userId = req.user;
-    const userBooks = req.user.books;
-
-    if (!userBooks.length) {
-      const allBooks = await Book.find().limit(6);
-      return res.status(200).json(allBooks);
-    }
-
-    const suggestedBooks = await Book.find({ _id: { $nin: userBooks } }).limit(
-      6
-    );
-    res.status(200).json(suggestedBooks);
-  } catch (error) {
-    console.log("Error in suggestedBooks:", error.message);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -213,17 +207,17 @@ const trendingBooks = async (req, res) => {
     const sortedRandomBooks = await Book.aggregate([
       {
         $project: {
-          title: 1,          
-          coverPage: 1,    
-          readersCount: { $size: "$readers" } 
-        }
+          title: 1,
+          coverPage: 1,
+          readersCount: { $size: "$readers" },
+        },
       },
       {
-        $sort: { readersCount: -1 } 
+        $sort: { readersCount: -1 },
       },
       {
-        $limit: 5 
-      }
+        $limit: 5,
+      },
     ]);
 
     res.status(200).json(sortedRandomBooks);
@@ -241,14 +235,5 @@ export {
   getBook,
   checkIn,
   checkOut,
-  suggestedBooks,
   trendingBooks,
 };
-// //Check In
-// const checkIn = async (req, res) => {
-//   try {
-//   } catch (error) {
-//     console.log("Error in checkIn:", error.message);
-//     return res.status(500).json({ error: error.message });
-//   }
-// };
