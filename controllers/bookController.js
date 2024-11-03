@@ -30,6 +30,29 @@ const getBook = async (req, res) => {
   }
 };
 
+//Search Book
+const searchBook = async (req, res) => {
+  try {
+    const searchBook = req.params.username;
+    // const currentUser = req.user;
+    // if (!currentUser.isAdmin) {
+    //   return res.status(400).json({ message: "Your are not an admit" });
+    // }
+
+    const book = await Book.find({
+      title: { $regex: new RegExp(searchBook, "i") },
+    });
+
+    if (!book || book.length === 0) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+    res.status(200).json(book);
+  } catch (error) {
+    console.log("Error in searchBook:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 // Create Books
 const createBook = async (req, res) => {
   try {
@@ -236,4 +259,5 @@ export {
   checkIn,
   checkOut,
   trendingBooks,
+  searchBook,
 };
