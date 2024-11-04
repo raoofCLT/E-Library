@@ -31,6 +31,10 @@ const bookSchema = mongoose.Schema({
     type: Date,
     required: true
   },
+  holder: {
+    type: String,
+    default:""
+  },
   readers: {
     type: [String],
     default: []

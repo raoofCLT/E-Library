@@ -34,10 +34,6 @@ const getBook = async (req, res) => {
 const searchBook = async (req, res) => {
   try {
     const searchBook = req.params.username;
-    // const currentUser = req.user;
-    // if (!currentUser.isAdmin) {
-    //   return res.status(400).json({ message: "Your are not an admit" });
-    // }
 
     const book = await Book.find({
       title: { $regex: new RegExp(searchBook, "i") },
@@ -167,8 +163,8 @@ const checkIn = async (req, res) => {
       return res.status(400).json({ error: "Max book limit reached" });
 
     await Book.findByIdAndUpdate(bookId, {
-      $push: { readers: user._id },
-      $set: { available: false },
+      $push: { readers: user._id},
+      $set: { available: false , holder: user.username},
     });
 
     await User.findByIdAndUpdate(user._id, {
@@ -211,7 +207,9 @@ const checkOut = async (req, res) => {
         .json({ error: "You are not checked in this book" });
     }
 
-    await Book.findByIdAndUpdate(bookId, { $set: { available: true } });
+    await Book.findByIdAndUpdate(bookId, {
+      $set: { available: true, holder: "" },
+    });
 
     await User.findByIdAndUpdate(user._id, {
       $pull: { currentBooks: { bookId: bookId } },
