@@ -2,6 +2,7 @@ import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import generateToken from "../genToken/generateToken.js";
 import mongoose from "mongoose";
+import { v2 as cloudinary } from "cloudinary";
 
 //Get Users
 const getUsers = async (req, res) => {
@@ -140,14 +141,14 @@ const logoutUser = async (req, res) => {
 
 //Update User
 const updateUser = async (req, res) => {
-  const { name, username, email, password, profilePic } = req.body;
-
+  const { name, username, email, password } = req.body;
+  let { profilePic } = req.body;
   const userId = req.user._id;
   try {
     const dbUser = await User.findById(userId);
     if (!dbUser) return res.status(404).json({ error: "User not found" });
 
-    if (req.params.id !== userId.toString())
+    if (req.params.id && req.params.id !== userId.toString())
       return res
         .status(400)
         .json({ error: "You cannot update other user's profile  " });
@@ -158,14 +159,24 @@ const updateUser = async (req, res) => {
       dbUser.password = hashedPassword;
     }
 
+    if (profilePic) {
+      if (dbUser.profilePic) {
+        await cloudinary.uploader.destroy(
+          dbUser.profilePic.split("/").pop().split(".")[0]
+        );
+      }
+
+      const uploadedResponse = await cloudinary.uploader.upload(profilePic);
+      dbUser.profilePic = uploadedResponse.secure_url;
+    }
+
     dbUser.name = name || dbUser.name;
     dbUser.email = email || dbUser.email;
     dbUser.username = username || dbUser.username;
-    dbUser.profilePic = profilePic || dbUser.profilePic;
 
     const user = await dbUser.save();
-
     user.password = null;
+
     res.status(200).json(user);
   } catch (error) {
     console.log("Error in updateUser:", error.message);
