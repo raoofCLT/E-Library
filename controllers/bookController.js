@@ -33,13 +33,13 @@ const getBook = async (req, res) => {
 //Search Book
 const searchBook = async (req, res) => {
   try {
-    const searchBook = req.params.username;
+    const searchBook = req.params.title;
 
     const book = await Book.find({
       title: { $regex: new RegExp(searchBook, "i") },
     });
 
-    if (!book || book.length === 0) {
+    if (book.length === 0) {
       return res.status(404).json({ message: "Book not found" });
     }
     res.status(200).json(book);

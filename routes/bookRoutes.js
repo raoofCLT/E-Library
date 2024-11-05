@@ -5,7 +5,7 @@ import protectRoute from "../middlewares/protectRoute.js"
 const router = express.Router()
 
 router.get("/getbook/:id",protectRoute,getBook)
-router.get("/searchbook/:username",protectRoute,searchBook)
+router.get("/searchbook/:title",protectRoute,searchBook)
 router.get("/getbooks",protectRoute,getBooks)
 router.get("/trending",protectRoute,trendingBooks)
 router.post("/create",protectRoute,createBook)
