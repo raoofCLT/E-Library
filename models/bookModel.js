@@ -44,7 +44,6 @@ const bookSchema = mongoose.Schema({
     default: true
   },
 },{timestamps: true});
-bookSchema.index({ title: 1, author: 1 }, { unique: true });
 
 const Book = mongoose.model("Book",bookSchema)
 

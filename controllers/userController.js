@@ -153,6 +153,15 @@ const updateUser = async (req, res) => {
         .status(400)
         .json({ error: "You cannot update other user's profile  " });
 
+    const checkUser = await User.findOne({
+      $or: [{ email }, { username }],
+      _id: { $ne: userId },
+    });
+    if (checkUser)
+      return res
+        .status(400)
+        .json({ error: "Username and Email should be unique" });
+
     if (password) {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
