@@ -30,25 +30,6 @@ const getBook = async (req, res) => {
   }
 };
 
-//Search Book
-const searchBook = async (req, res) => {
-  try {
-    const searchBook = req.params.title;
-
-    const book = await Book.find({
-      title: { $regex: new RegExp(searchBook, "i") },
-    });
-
-    if (book.length === 0) {
-      return res.status(404).json({ message: "Book not found" });
-    }
-    res.status(200).json(book);
-  } catch (error) {
-    console.log("Error in searchBook:", error.message);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
 // Create Books
 const createBook = async (req, res) => {
   try {
@@ -244,6 +225,25 @@ const trendingBooks = async (req, res) => {
     res.status(200).json(sortedRandomBooks);
   } catch (error) {
     console.log("Error in trendingBooks:", error.message);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+//Search Book
+const searchBook = async (req, res) => {
+  try {
+    const searchBook = req.params.title;
+
+    const book = await Book.find({
+      title: { $regex: new RegExp(searchBook, "i") },
+    });
+
+    if (book.length === 0) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+    res.status(200).json(book);
+  } catch (error) {
+    console.log("Error in searchBook:", error.message);
     return res.status(500).json({ error: error.message });
   }
 };
